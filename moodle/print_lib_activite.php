@@ -1808,6 +1808,27 @@ global $COURSE;
 			if ($has_capability	or $is_owner){ 
 				if (isset($approved) && ($approved))
 				{
+					
+					/*
+					 * le bouton d'exportation vers mahara
+					 * Attention, il faut ajouter le PDF
+					 */					 
+					 if (!empty($CFG->enableportfolios)){
+						echo "<br> print_lib_activite.php<br>";
+						require_once($CFG->libdir.'/portfoliolib.php');
+						// Mahara export stuff
+						$button = new portfolio_add_button();
+
+						$idcerti =1;
+						$button->set_callback_options('referentiel_portfolio_caller',
+						array('instanceid' => optional_param('d', 0, PARAM_INT), 'certificatid' => $idcerti, 'report' => 0, 'export_format' => ''), 'mod_referentiel');
+
+						$button->set_formats(array(PORTFOLIO_FORMAT_PLAINHTML, PORTFOLIO_FORMAT_LEAP2A));
+
+						echo $button->to_html(PORTFOLIO_ADD_ICON_LINK);
+						echo "<br>ligne 1828<br>";
+					}
+					
 					echo "<br>".gere_bouton_export($activite_id,$ref_referentiel,$userid,$competences_activite,$context->id,optional_param('d', 0, PARAM_INT),$date_creation,$CFG->wwwroot);
 				}
 				if ($has_capability || ($is_owner && !$approved)) {

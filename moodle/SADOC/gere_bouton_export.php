@@ -1,19 +1,20 @@
 <?php
 	require_once ("SADOC/sadocUtils.php");   // librairie de fonction sur sadoc 
 	
-	function cherche_ligne_dans_bd($acro)
+	function cherche_ligne_dans_bd($codeCompetence)
 	{
 		try
 		{	
 			$PARAM_hote = 'localhost';
-			$PARAM_nom_bd = 'moodle_2';
-			$PARAM_utilisateur = 'user';
-			$PARAM_mot_passe = 'pass';
+			$PARAM_nom_bd = 'SADOCCO';
+			$PARAM_utilisateur = 'root';
+			$PARAM_mot_passe = 'Nordine1$';
 						
 			$connexion = new PDO('mysql:host='.$PARAM_hote.';dbname='.$PARAM_nom_bd, $PARAM_utilisateur, $PARAM_mot_passe); //;port='.$PARAM_port.';
 
-			$resultats=$connexion->query("SELECT * FROM competences_C2i2 where acronym='".$acro."'");
+		$resultats=$connexion->query("SELECT * FROM COMPETENCE where CODECOMPETENCE='".$codeCompetence."'");
 			$resultats->setFetchMode(PDO::FETCH_OBJ); // on dit qu'on veut que le résultat soit récupérable sous forme d'objet
+			
 			
 			$ligne = $resultats->fetch() ;			
 			$resultats->closeCursor(); // on ferme le curseur des résultats
@@ -26,14 +27,16 @@
 		return $ligne ;
 	}
 	
-	function creer_competence($acro)
+	function creer_competence($codeCompetence)
 	{
-		$comp = cherche_ligne_dans_bd($acro);
+		$comp = cherche_ligne_dans_bd($codeCompetence);
+		
+		$name = substr($codeCompetence, 0, -2);
 						
-		$competence->id=$comp->id;
-		$competence->name=$comp->name;
-		$competence->description=$comp->description;
-		$competence->acronym=$comp->acronym;
+		$competence->id=$comp->ID;
+		$competence->name=$name;
+		$competence->description=$comp->DESCRIPTION;		
+		$competence->acronym="C2I:2012-02-22:".str_replace(".",":",$name);	
 
 		return $competence ;
 	}
@@ -113,20 +116,39 @@
 						
 						
 						/*       COMPETENCE(S) VALIDÉE(S)         */
-						$competence1 = creer_competence('C2I:2012-02-22:D1:1');		
+						
+						$tableauDeCompetences = explode("/", $competences_activite);
+						$array_res;
+						for($i=0;$i<count($tableauDeCompetences)-1;$i++)
+						{			
+							$comp = creer_competence($tableauDeCompetences[$i]);
+							$arrray_res[$i] = $comp ;
+						}
+		
+		/*echo "<br>.....";
+		foreach ($arrray_res as $comp){
+			echo "<br>";
+			print_r($comp);
+			echo "<br>";
+		}
+		echo ".....<br>";	*/		
+						
+						
+						
+						/*$competence1 = creer_competence('C2I:2012-02-22:D1:1');		
 						$competence2 = creer_competence('C2I:2012-02-22:D2:2');						
 						$competence3 = creer_competence('C2I:2012-02-22:D3:3');												
 						$competence4 = creer_competence('C2I:2012-02-22:D4:4');						
-						$competence5 = creer_competence('C2I:2012-02-22:D5:5');
+						$competence5 = creer_competence('C2I:2012-02-22:D5:5');*/
 						
 						/*        SIGNATURE DOCUMENT VIA SADoc         */
 						$ret2=$ws->signDocument(array(
 												"doc"=>$contents,
 												"name"=>$fileName,
 												"owner"=>$user,
-												"competence"=>array($competence1,$competence2,$competence3,$competence4,$competence5))
+												"competence"=>$array_res)
 												);		
-												
+		/* "competence"=>array($competence1,$competence2,$competence3,$competence4,$competence5) */										
 												
 						/*     SAUVEGARDE SUR SERVEUR DU FICHIER PDF    */
 						$fp = fopen($dirname.$nom_fichier, 'w');
